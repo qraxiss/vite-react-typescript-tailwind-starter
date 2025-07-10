@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Phone } from 'lucide-react';
+import { PhoneCall, Briefcase } from 'lucide-react';
+import bgImage from './assets/bg.png';
 
 const App: React.FC = () => {
   const [showComingSoon, setShowComingSoon] = useState(false);
@@ -8,76 +9,79 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 relative overflow-hidden">
-      {/* Subtle gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/50 via-black to-black"></div>
+      {/* Dynamic background */}
+      <div className="absolute inset-0">
+        <img src={bgImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black"></div>
+      </div>
       
-      <div className="relative z-10 max-w-lg w-full space-y-16 text-center">
-        {/* Logo */}
-        <div className="space-y-6">
-          <div className="bg-white p-8 rounded-lg shadow-2xl inline-block transform hover:scale-105 transition-transform duration-300">
-            <div className="relative group cursor-pointer">
-              <div className="inline-flex items-baseline space-x-0.5">
-                <span className="text-5xl font-black text-black">bi</span>
-                <span className="text-5xl font-extralight text-gray-300">-</span>
-                <span className="text-5xl font-black text-black">alo</span>
-                <span className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent ml-1">.de</span>
-              </div>
-              <div className="absolute -top-2 -right-2 w-4 h-4 bg-purple-600 rounded-full opacity-0 group-hover:opacity-100 transform scale-0 group-hover:scale-100 transition-all duration-500"></div>
-              <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transform scale-0 group-hover:scale-100 transition-all duration-500 delay-100"></div>
-            </div>
-          </div>
-          <p className="text-xl md:text-2xl text-gray-400 font-extralight tracking-widest uppercase">bi alo desen yeter</p>
-        </div>
-
-        {/* ALO Button - White style matching logo */}
-        <div className="relative group">
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative inline-flex items-center justify-center px-16 py-5 bg-white text-black font-black text-3xl tracking-wider uppercase rounded-lg shadow-2xl transform hover:scale-105 transition-all duration-300 group overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <Phone className="w-8 h-8 mr-4 relative z-10 group-hover:text-white transition-colors duration-500" />
-            <span className="relative z-10 group-hover:text-white transition-colors duration-500">ALO</span>
-          </a>
-          {/* Floating dots on hover */}
-          <div className="absolute -top-3 -right-3 w-5 h-5 bg-purple-600 rounded-full opacity-0 group-hover:opacity-100 transform scale-0 group-hover:scale-100 transition-all duration-500"></div>
-          <div className="absolute -bottom-3 -left-3 w-4 h-4 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transform scale-0 group-hover:scale-100 transition-all duration-500 delay-100"></div>
-        </div>
-
-        {/* Phone Number - Clean white box */}
-        <div className="bg-white/10 backdrop-blur-sm px-8 py-4 rounded-lg inline-block">
-          <p className="text-gray-300 text-lg font-mono tracking-wider">{phoneNumber}</p>
-        </div>
-
-        {/* Demo Button - Minimalist style */}
-        <div className="pt-8 relative">
-          <button
-            onClick={() => setShowComingSoon(true)}
-            onMouseLeave={() => setShowComingSoon(false)}
-            className="relative px-10 py-3 text-white font-extralight tracking-[0.3em] uppercase border border-white/30 rounded-lg hover:bg-white hover:text-black transition-all duration-300 backdrop-blur-sm"
-          >
-            DEMO
-          </button>
-          
-          {/* Coming Soon Message */}
-          {showComingSoon && (
-            <div className="absolute top-full mt-4 left-1/2 transform -translate-x-1/2 bg-white text-black px-6 py-3 font-medium tracking-wide uppercase text-sm rounded-lg shadow-2xl">
-              Coming Soon
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-white"></div>
-            </div>
-          )}
-        </div>
+      {/* Animated gradient mesh */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse delay-700"></div>
       </div>
 
-      {/* Minimal corner accents */}
-      <div className="absolute top-8 left-8 w-16 h-16 border-t border-l border-white/20 rounded-tl-lg"></div>
-      <div className="absolute bottom-8 right-8 w-16 h-16 border-b border-r border-white/20 rounded-br-lg"></div>
-      
-      {/* Floating gradient orbs for subtle effect */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-400/10 rounded-full blur-3xl"></div>
+      <div className="relative z-10 max-w-2xl w-full space-y-16 text-left">
+        {/* Modern Logo */}
+        <div className="relative">
+          <div className="inline-block">
+            {/* Glow effect behind logo */}
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-400 blur-2xl opacity-50 animate-pulse"></div>
+            
+            <div className="relative">
+              {/* Main logo text */}
+              <div className="flex items-baseline space-x-2">
+                <span className="text-7xl md:text-8xl font-black text-white tracking-tight">bi</span>
+                <span className="text-6xl md:text-7xl font-thin text-purple-400/50">—</span>
+                <span className="text-7xl md:text-8xl font-black text-white tracking-tight">alo</span>
+                <span className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 via-purple-300 to-purple-400 bg-clip-text text-transparent ml-2 animate-gradient">.de</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Modern Buttons */}
+        <div className="space-y-4">
+          {/* ALO Button - Glassmorphism style */}
+          <div className="relative group inline-block">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-400 rounded-full blur-lg group-hover:blur-xl opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-md text-white rounded-full border border-white/20 transform transition-all duration-500 hover:scale-110 hover:bg-white/20"
+            >
+              <PhoneCall className="w-7 h-7" />
+              
+              {/* Animated dots */}
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-ping"></div>
+              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-purple-400 rounded-full animate-ping animation-delay-300"></div>
+            </a>
+          </div>
+
+          {/* Portfolio Button - Outline style */}
+          <div className="relative">
+            <button
+              onClick={() => window.location.href = '/profile'}
+              className="relative group inline-flex items-center space-x-3 px-10 py-4 bg-transparent text-white rounded-xl border-2 border-purple-500/50 overflow-hidden transform transition-all duration-500 hover:scale-105 hover:border-purple-400"
+            >
+              {/* Gradient fill on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-400/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+              
+              <Briefcase className="relative w-5 h-5" />
+              <span className="relative text-lg font-bold tracking-wider uppercase">PORTFOLIO</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Corner accents - minimal and modern */}
+      <div className="absolute top-0 left-0 w-px h-32 bg-gradient-to-b from-purple-600/50 to-transparent"></div>
+      <div className="absolute top-0 left-0 w-32 h-px bg-gradient-to-r from-purple-600/50 to-transparent"></div>
+      <div className="absolute bottom-0 right-0 w-px h-32 bg-gradient-to-t from-purple-600/50 to-transparent"></div>
+      <div className="absolute bottom-0 right-0 w-32 h-px bg-gradient-to-l from-purple-600/50 to-transparent"></div>
     </div>
   );
 };
