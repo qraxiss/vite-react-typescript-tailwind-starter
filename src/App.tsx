@@ -7,7 +7,9 @@ import {
   Trash2,
   Plus,
   Edit2,
-  Calendar
+  Calendar,
+  Play,
+  ArrowRight
 } from 'lucide-react'
 
 interface Task {
@@ -16,10 +18,12 @@ interface Task {
   startTime: string | null
   linkedTo: string | null
   completed: boolean
+  inProgress: boolean
   day: string
   order: number
   createdAt: string
   completedAt: string | null
+  postponedCount: number
 }
 
 const TaskChainApp = () => {
@@ -33,7 +37,9 @@ const TaskChainApp = () => {
         return parsedTasks.map((task: any) => ({
           ...task,
           createdAt: task.createdAt || new Date().toISOString(),
-          completedAt: task.completedAt || null
+          completedAt: task.completedAt || null,
+          inProgress: task.inProgress || false,
+          postponedCount: task.postponedCount || 0
         }))
       }
       return []
@@ -43,9 +49,24 @@ const TaskChainApp = () => {
     }
   })
   const [activeTab, setActiveTab] = useState('active')
-  const [selectedDay, setSelectedDay] = useState(
-    new Date().toISOString().split('T')[0]
-  )
+  const [selectedDay, setSelectedDay] = useState(() => {
+    // Check if there are tasks and use the most recent day with tasks
+    const tasksFromStorage = localStorage.getItem('taskChainData')
+    if (tasksFromStorage) {
+      try {
+        const parsedTasks = JSON.parse(tasksFromStorage)
+        if (parsedTasks.length > 0) {
+          // Get unique days and sort them
+          const days = [...new Set(parsedTasks.map((t: any) => t.day))].sort()
+          // Return the most recent day that has tasks
+          return days[days.length - 1] || new Date().toISOString().split('T')[0]
+        }
+      } catch (e) {
+        console.error('Failed to parse tasks for day selection:', e)
+      }
+    }
+    return new Date().toISOString().split('T')[0]
+  })
   const [newTaskText, setNewTaskText] = useState('')
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [selectedHashtags, setSelectedHashtags] = useState<string[]>([])
@@ -74,6 +95,35 @@ const TaskChainApp = () => {
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
   }, [])
+
+  // Auto-postpone past tasks
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0]
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowString = tomorrow.toISOString().split('T')[0]
+    
+    const pastTasks = tasks.filter(task => 
+      !task.completed && 
+      task.day < today
+    )
+    
+    if (pastTasks.length > 0) {
+      setTasks(prevTasks => 
+        prevTasks.map(task => {
+          if (!task.completed && task.day < today) {
+            return {
+              ...task,
+              day: tomorrowString,
+              postponedCount: task.postponedCount + 1,
+              order: prevTasks.filter(t => t.day === tomorrowString && !t.completed).length
+            }
+          }
+          return task
+        })
+      )
+    }
+  }, []) // Run only on mount
 
   // Extract hashtags from text
   const extractHashtags = (text: string): string[] => {
@@ -131,14 +181,15 @@ const TaskChainApp = () => {
     }
   }
 
-  // Generate 7 days starting from today
+  // Generate 14 days - 7 days back and 7 days forward from today
   const generateWeekDays = () => {
     const days = []
     const today = new Date()
 
-    for (let i = 0; i < 7; i++) {
+    // Past 7 days (including today)
+    for (let i = 6; i >= 0; i--) {
       const date = new Date(today)
-      date.setDate(today.getDate() + i)
+      date.setDate(today.getDate() - i)
 
       const dateString = date.toISOString().split('T')[0]
       const month = date.toLocaleDateString('en-US', { month: 'short' })
@@ -148,6 +199,29 @@ const TaskChainApp = () => {
       if (i === 0) {
         displayName = `Today (${month} ${day})`
       } else if (i === 1) {
+        displayName = `Yesterday (${month} ${day})`
+      } else {
+        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
+        displayName = `${weekday} (${month} ${day})`
+      }
+
+      days.push({
+        date: dateString,
+        displayName
+      })
+    }
+
+    // Future 7 days
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() + i)
+
+      const dateString = date.toISOString().split('T')[0]
+      const month = date.toLocaleDateString('en-US', { month: 'short' })
+      const day = date.getDate()
+
+      let displayName: string
+      if (i === 1) {
         displayName = `Tomorrow (${month} ${day})`
       } else {
         const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
@@ -173,10 +247,12 @@ const TaskChainApp = () => {
       startTime: null,
       linkedTo: null,
       completed: false,
+      inProgress: false,
       day: selectedDay,
       order: tasks.filter((t) => t.day === selectedDay && !t.completed).length,
       createdAt: getFormattedDate(),
-      completedAt: null
+      completedAt: null,
+      postponedCount: 0
     }
 
     setTasks([...tasks, newTask])
@@ -191,7 +267,39 @@ const TaskChainApp = () => {
           ? {
               ...task,
               completed: !task.completed,
-              completedAt: !task.completed ? getFormattedDate() : null
+              completedAt: !task.completed ? getFormattedDate() : null,
+              inProgress: false // Clear in progress when completing
+            }
+          : task
+      )
+    )
+  }
+
+  // Toggle in progress status
+  const toggleInProgress = (taskId: string) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId
+          ? { ...task, inProgress: !task.inProgress }
+          : task
+      )
+    )
+  }
+
+  // Postpone task to tomorrow
+  const postponeTask = (taskId: string) => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowString = tomorrow.toISOString().split('T')[0]
+    
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId
+          ? { 
+              ...task, 
+              day: tomorrowString,
+              postponedCount: task.postponedCount + 1,
+              order: tasks.filter(t => t.day === tomorrowString && !t.completed).length
             }
           : task
       )
@@ -443,7 +551,11 @@ const TaskChainApp = () => {
     return (
       <div
         className={`rounded-lg shadow-sm border p-4 mb-3 cursor-move transition-shadow ${
-          isDarkMode
+          task.inProgress
+            ? isDarkMode
+              ? 'bg-blue-900 border-blue-700 hover:shadow-lg hover:shadow-blue-900/50'
+              : 'bg-blue-50 border-blue-300 hover:shadow-md'
+            : isDarkMode
             ? 'bg-gray-800 border-gray-700 hover:shadow-lg hover:shadow-gray-900/50'
             : 'bg-white border-gray-200 hover:shadow-md'
         }`}
@@ -516,6 +628,27 @@ const TaskChainApp = () => {
               )}
             </div>
 
+            {task.inProgress && (
+              <div
+                className={`ml-7 text-sm mb-2 flex items-center gap-1 ${
+                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                }`}
+              >
+                <Play className="w-4 h-4" />
+                <span className="font-medium">In Progress</span>
+              </div>
+            )}
+
+            {task.postponedCount > 0 && (
+              <div
+                className={`ml-7 text-sm mb-2 ${
+                  isDarkMode ? 'text-orange-400' : 'text-orange-600'
+                }`}
+              >
+                Postponed {task.postponedCount} {task.postponedCount === 1 ? 'time' : 'times'}
+              </div>
+            )}
+
             {task.linkedTo && linkedFromTask && (
               <div
                 className={`ml-7 text-sm mb-2 ${
@@ -540,17 +673,45 @@ const TaskChainApp = () => {
 
           <div className="flex items-center gap-2">
             {!task.completed && !isEditing && (
-              <button
-                onClick={() => startEditing(task.id, task.text)}
-                className={`p-1 transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-400 hover:text-gray-200'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-                title="Edit task"
-              >
-                <Edit2 className="w-4 h-4" />
-              </button>
+              <>
+                <button
+                  onClick={() => toggleInProgress(task.id)}
+                  className={`p-2 rounded transition-colors ${
+                    task.inProgress
+                      ? isDarkMode
+                        ? 'bg-blue-700 text-white hover:bg-blue-600'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                      : isDarkMode
+                      ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
+                  }`}
+                  title={task.inProgress ? "Mark as not in progress" : "Mark as in progress"}
+                >
+                  <Play className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => startEditing(task.id, task.text)}
+                  className={`p-1 transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400 hover:text-gray-200'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                  title="Edit task"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => postponeTask(task.id)}
+                  className={`p-1 transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400 hover:text-orange-400'
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                  title="Postpone to tomorrow"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </>
             )}
 
             {!task.linkedTo && !task.completed && !isEditing && (
